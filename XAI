@@ -1,0 +1,283 @@
+# rod: r outlier detection - autotelic engine with ami, possibility theory, rml, and concept drift # script title
+# advanced streaming framework for multi-sector non-stationary environments # script description
+
+library(R6) # loads r6 for object-oriented encapsulation
+library(plumber) # loads plumber for real-time http api ingestion
+library(dplyr) # loads dplyr for dataframe manipulation
+library(tidyr) # loads tidyr for data reshaping
+library(plotly) # loads plotly for multi-dimensional html visualizations
+library(htmltools) # loads htmltools for dashboard dom assembly
+library(igraph) # loads igraph for relational machine learning topology mapping
+library(futile.logger) # loads futile.logger for formal execution auditing
+
+# --------------------------------------------------------- # structural demarcation
+# 1. rod base agent (autotelic cognitive core) # foundational class definition
+# --------------------------------------------------------- # structural demarcation
+RODBase <- R6Class("RODBase", # instantiates the base r6 class structure
+  public = list( # defines publicly accessible properties and methods
+    agent_id = NULL, # initializes the unique agent identification string
+    sector = NULL, # initializes the categorical sector designation
+    
+    intrinsic_state = list(surprise = 0, curiosity = 1.0, mastery = 0), # defines the tri-variate autotelic loop parameters
+    
+    # artificial mathematical intelligence (ami) parameters # ami parameter section
+    basis_weights = c(w0 = 0, w1 = 0, w2 = 0, w3 = 0), # initializes symbolic regression weights for basis functions
+    learning_rate = 0.05, # initializes the baseline stochastic gradient descent step size
+    variance_estimate = 1.0, # initializes the rolling variance for possibility fuzzy functions
+    
+    # explicit concept drift and memory banks # non-stationarity memory section
+    memory_banks = list(), # initializes the list to store historical mathematical regimes
+    ph_state = list(sum = 0, mean = 0, count = 0), # initializes the page-hinkley drift detection accumulators
+    ph_lambda = 5.0, # sets the threshold for triggering a concept drift event
+    
+    history = list(), # initializes the temporal logging array for dashboard rendering
+    
+    initialize = function(id, sector) { # defines the class constructor
+      self$agent_id <- id # assigns the provided identification
+      self$sector <- sector # assigns the domain sector
+      self$history <- list() # ensures history is instantiated as an empty list
+      flog.info(sprintf("[rod-core] initialized agent %s in sector %s", id, sector)) # logs successful instantiation
+    }, # closes constructor
+    
+    # ----------------------------------------------------- # structural demarcation
+    # ami, possibility theory & drift signal processing # core mathematical logic
+    # ----------------------------------------------------- # structural demarcation
+    process_signal = function(val, tick) { # defines the primary ingestion method
+      val <- as.numeric(val) # rigorously coerces incoming telemetry to numeric representation
+      
+      # 1. ami symbolic prediction # executes governing mathematical law
+      basis_vector <- c(1, tick/100, sin(tick/10), cos(tick/10)) # calculates the current mathematical basis features
+      prediction <- sum(self$basis_weights * basis_vector) # computes the expected value via inner product
+      residual <- val - prediction # calculates the absolute mathematical deviation
+      
+      # 2. explicit concept drift detection (page-hinkley) # evaluates stationarity
+      self$ph_state$count <- self$ph_state$count + 1 # increments the observation counter
+      self$ph_state$mean <- self$ph_state$mean + (residual - self$ph_state$mean) / self$ph_state$count # updates the recursive mean of residuals
+      self$ph_state$sum <- max(0, self$ph_state$sum + abs(residual) - self$ph_state$mean - 0.5) # updates the cumulative page-hinkley statistic
+      
+      drift_flag <- FALSE # initializes the drift indicator to false
+      if (self$ph_state$sum > self$ph_lambda && self$intrinsic_state$mastery > 0.8) { # evaluates if drift threshold is breached post-mastery
+        drift_flag <- TRUE # asserts the drift indicator
+        self$snapshot_memory_bank(tick) # preserves the current governing equation to the memory bank
+        self$reset_cognitive_state() # flushes the cognitive accumulators to recommence exploration
+      } # closes drift evaluation
+      
+      # 3. ami parameter update (exploration phase) # executes symbolic regression updates
+      if (self$intrinsic_state$curiosity > 0.1) { # restricts updating to periods of active curiosity
+        effective_lr <- self$learning_rate * self$intrinsic_state$curiosity # scales the learning rate by the intrinsic curiosity
+        self$basis_weights <- self$basis_weights + effective_lr * residual * basis_vector # applies stochastic gradient descent to the basis weights
+        self$variance_estimate <- (self$variance_estimate * 0.9) + (residual^2 * 0.1) # updates the recursive variance estimator
+      } # closes ami update block
+      
+      # 4. possibility theory & fuzzy logic scoring # evaluates aleatoric vs epistemic uncertainty
+      sigma <- sqrt(self$variance_estimate) + 1e-5 # computes the standard deviation with a numerical stability constant
+      membership <- exp(-0.5 * (residual / sigma)^2) # computes the gaussian fuzzy membership function (possibility)
+      
+      epistemic_uncertainty <- 1.0 - self$intrinsic_state$mastery # derives epistemic uncertainty directly from lack of mastery
+      possibility <- max(membership, epistemic_uncertainty) # calculates the supremum of aleatoric and epistemic possibility
+      necessity <- max(0, 1.0 - possibility) # derives the necessity measure of anomalousness via logical duality
+      
+      # 5. autotelic goal adjustment # updates the intrinsic motivation loop
+      current_surprise <- min(1.0, abs(residual) / (3 * sigma)) # normalizes the current mathematical surprise
+      self$intrinsic_state$surprise <- (self$intrinsic_state$surprise * 0.9) + (current_surprise * 0.1) # applies exponential smoothing to surprise
+      
+      if (self$intrinsic_state$surprise > 0.4) { # evaluates if the environment remains highly unpredictable
+        self$intrinsic_state$curiosity <- min(1.0, self$intrinsic_state$curiosity + 0.05) # dynamically increases curiosity
+        self$intrinsic_state$mastery <- max(0, self$intrinsic_state$mastery - 0.05) # dynamically decreases mastery
+      } else { # evaluates if the environment is mathematically conquered
+        self$intrinsic_state$curiosity <- max(0.01, self$intrinsic_state$curiosity - 0.02) # exponentially decays curiosity
+        self$intrinsic_state$mastery <- min(1.0, self$intrinsic_state$mastery + 0.05) # monotonically increases mastery
+      } # closes autotelic evaluation
+      
+      # 6. fuzzy state categorization # translates mathematics into operational semantics
+      status <- "stable_regime" # defaults operational status to stable
+      if (epistemic_uncertainty > 0.5) status <- "insufficient_data_possible_normalcy" # defers judgment due to epistemic ignorance
+      else if (necessity > 0.8) status <- "critical_mathematical_violation" # asserts a critical anomaly based on high necessity
+      else if (drift_flag) status <- "concept_drift_detected" # asserts a structural paradigm shift
+      
+      # 7. temporal logging # appends state to the historical matrix
+      self$history[[length(self$history) + 1]] <- data.frame( # constructs a single-row dataframe for the current tick
+        tick = tick, # logs the temporal index
+        agent = self$agent_id, # logs the agent identification
+        signal = val, # logs the raw telemetry value
+        prediction = prediction, # logs the ami symbolic prediction
+        necessity = necessity, # logs the fuzzy necessity score
+        possibility = possibility, # logs the fuzzy possibility score
+        mastery = self$intrinsic_state$mastery, # logs the intrinsic mastery state
+        curiosity = self$intrinsic_state$curiosity, # logs the intrinsic curiosity state
+        status = status # logs the semantic operational status
+      ) # closes dataframe construction
+      
+      return(list(necessity = necessity, status = status, mastery = self$intrinsic_state$mastery)) # yields the computed evaluation to the orchestrator
+    }, # closes process_signal method
+    
+    snapshot_memory_bank = function(tick) { # defines the preservation method for non-stationarity
+      bank_id <- paste0("regime_", length(self$memory_banks) + 1) # synthesizes a unique mathematical regime identifier
+      self$memory_banks[[bank_id]] <- list( # stores the governing parameters
+        weights = self$basis_weights, # archives the symbolic regression coefficients
+        variance = self$variance_estimate # archives the expected stochastic variance
+      ) # closes list assignment
+      flog.warn(sprintf("[rod-memory] agent %s snapshotted %s at tick %d", self$agent_id, bank_id, tick)) # logs the preservation event
+    }, # closes snapshot method
+    
+    reset_cognitive_state = function() { # defines the epistemological reset sequence
+      self$ph_state <- list(sum = 0, mean = 0, count = 0) # flushes the page-hinkley accumulators
+      self$intrinsic_state$curiosity <- 1.0 # maximizes the learning rate for exploration
+      self$intrinsic_state$mastery <- 0.0 # nullifies structural confidence
+      self$intrinsic_state$surprise <- 1.0 # maximizes expectation of prediction error
+    }, # closes reset method
+    
+    force_relational_knowledge = function(weights, variance) { # defines the rml ingestion interface
+      self$basis_weights <- weights # overwrites native basis weights with foreign knowledge
+      self$variance_estimate <- variance # overwrites native variance with foreign expectations
+      self$intrinsic_state$mastery <- 0.8 # jumpstarts mastery due to shared knowledge
+      self$intrinsic_state$curiosity <- 0.2 # suppresses curiosity due to external certainty
+      flog.info(sprintf("[rod-rml] agent %s ingested foreign mathematical regime", self$agent_id)) # logs the successful knowledge transfer
+    } # closes rml method
+  ) # closes public method list
+) # closes base class definition
+
+# --------------------------------------------------------- # structural demarcation
+# 2. domain-specific subclass implementations # specialized class definitions
+# --------------------------------------------------------- # structural demarcation
+RODFinance <- R6Class("RODFinance", inherit = RODBase, public = list(initialize = function(id) super$initialize(id, "Finance"))) # instantiates the financial subclass
+RODHealth <- R6Class("RODHealth", inherit = RODBase, public = list(initialize = function(id) super$initialize(id, "Healthcare"))) # instantiates the healthcare subclass
+RODAerospace <- R6Class("RODAerospace", inherit = RODBase, public = list(initialize = function(id) super$initialize(id, "Aerospace"))) # instantiates the aerospace subclass
+
+# --------------------------------------------------------- # structural demarcation
+# 3. relational machine learning orchestrator # central coordination class definition
+# --------------------------------------------------------- # structural demarcation
+RODOrchestrator <- R6Class("RODOrchestrator", # instantiates the central orchestrator structure
+  public = list( # defines publicly accessible orchestrator properties
+    agents = list(), # initializes the central registry of active agents
+    rml_ledger = data.frame(tick=integer(), source=character(), target=character()), # initializes the relational machine learning transfer log
+    
+    spawn_agent = function(id, sector) { # defines the agent instantiation factory
+      self$agents[[id]] <- switch(sector, # evaluates the requested sector domain
+        "Finance"    = RODFinance$new(id), # constructs a financial agent
+        "Healthcare" = RODHealth$new(id), # constructs a healthcare agent
+        "Aerospace"  = RODAerospace$new(id), # constructs an aerospace agent
+        RODBase$new(id, sector) # defaults to the base generalized agent
+      ) # closes the switch construction
+    }, # closes spawn method
+    
+    evaluate_rml_opportunities = function(tick) { # defines the relational cross-pollination logic
+      mastered_agents <- names(self$agents)[sapply(self$agents, function(a) a$intrinsic_state$mastery == 1.0)] # identifies agents exhibiting absolute structural mastery
+      unmastered_agents <- names(self$agents)[sapply(self$agents, function(a) a$intrinsic_state$mastery < 0.5)] # identifies agents exhibiting severe epistemic uncertainty
+      
+      if (length(mastered_agents) > 0 && length(unmastered_agents) > 0) { # validates the mathematical prerequisites for knowledge transfer
+        source_id <- mastered_agents[1] # selects the premier mastered agent as the knowledge source
+        for (target_id in unmastered_agents) { # iterates through all epistemically ignorant agents
+          self$agents[[target_id]]$force_relational_knowledge( # executes the forced knowledge injection
+            self$agents[[source_id]]$basis_weights, # transfers the symbolic governing equation
+            self$agents[[source_id]]$variance_estimate # transfers the associated stochastic bounds
+          ) # closes force method
+          self$rml_ledger <- rbind(self$rml_ledger, data.frame(tick=tick, source=source_id, target=target_id)) # records the topological transfer event
+        } # closes target iteration
+      } # closes rml validation
+    }, # closes rml evaluation method
+    
+    # ----------------------------------------------------- # structural demarcation
+    # data simulation and execution loops # system execution methods
+    # ----------------------------------------------------- # structural demarcation
+    simulate_data = function(sector, tick) { # defines the synthetic telemetry generator
+      base_val <- switch(sector, # computes the fundamental domain-specific generating function
+        "Finance" = 100 + tick*0.05 + sin(tick/10)*2, # implements a linear drift with sinusoidal microstructure
+        "Healthcare" = 80 + cos(tick/5)*5, # implements a strict cyclical biological rhythm
+        "Aerospace" = 50 + sin(tick/20)*10, # implements a slow temporal thermal drift
+        0 # defaults to absolute zero
+      ) # closes base switch
+      
+      if (tick > 60 && sector == "Aerospace") base_val <- base_val + 25 # mathematically injects a permanent structural concept drift
+      if (runif(1) > 0.95) base_val <- base_val + sample(c(-15, 15), 1) # mathematically injects a transient aleatoric shock
+      return(base_val + rnorm(1, 0, 1)) # returns the generated value overlaid with gaussian white noise
+    }, # closes simulation method
+    
+    monitor_ecosystem = function(ticks = 100) { # defines the primary discrete-time simulation loop
+      agent_ids <- names(self$agents) # caches the active agent registry
+      for (t in 1:ticks) { # iterates chronologically through the requested tick volume
+        for (id in agent_ids) { # iterates uniformly across all instantiated agents
+          val <- self$simulate_data(self$agents[[id]]$sector, t) # generates the current telemetry state
+          self$agents[[id]]$process_signal(val, t) # synchronously passes the telemetry to the agentic core
+        } # closes agent iteration
+        if (t %% 10 == 0) self$evaluate_rml_opportunities(t) # triggers the relational machine learning evaluation on a decadal epoch
+      } # closes temporal iteration
+      flog.info("[rod-system] simulation epoch successfully terminated.") # audits the completion of the simulation
+    }, # closes monitor method
+    
+    # ----------------------------------------------------- # structural demarcation
+    # live api and dashboard compilation # interface generation methods
+    # ----------------------------------------------------- # structural demarcation
+    start_rest_api = function(port = 8000) { # defines the initialization sequence for the plumber http service
+      pr <- pr() # instantiates a bare plumber routing object
+      pr <- pr_post(pr, "/ingest", function(agent_id, value, tick) { # registers the asynchronous telemetry ingestion endpoint
+        if (is.null(self$agents[[agent_id]])) return(list(error="unregistered agent id")) # intercepts and rejects unauthorized agent payloads
+        res <- self$agents[[agent_id]]$process_signal(as.numeric(value), as.numeric(tick)) # routes the payload to the specified agentic core
+        self$evaluate_rml_opportunities(as.numeric(tick)) # evaluates meta-knowledge transfer post-ingestion
+        return(res) # returns the fuzzy necessity scores and operational status to the remote caller
+      }) # closes the post endpoint registration
+      pr <- pr_get(pr, "/dashboard", function(res) { # registers the synchronous dashboard retrieval endpoint
+        res$body <- as.character(self$render_dashboard()) # serializes the generated dom elements to strings
+        res$setHeader("Content-Type", "text/html") # dictates the http content-type headers for proper browser rendering
+        return(res) # executes the payload delivery
+      }) # closes the get endpoint registration
+      flog.info(sprintf("[rod-api] mounting asynchronous listener on port %d", port)) # audits the initiation of the network bind
+      pr_run(pr, port = port, host = "0.0.0.0") # executes the thread-blocking server bind to all network interfaces
+    }, # closes api initialization
+    
+    render_dashboard = function() { # defines the multi-dimensional html generation method
+      df <- do.call(rbind, lapply(self$agents, function(a) do.call(rbind, a$history))) # vertically concatenates all agent historical matrices
+      
+      # 1. fuzzy necessity heatmap # constructs the diagnostic thermal representation
+      heatmap_data <- df %>% select(tick, agent, necessity) %>% pivot_wider(names_from = tick, values_from = necessity) # cross-tabulates necessity over time
+      p_heatmap <- plot_ly(z = as.matrix(heatmap_data[,-1]), y = heatmap_data$agent, x = colnames(heatmap_data)[-1], # binds the matrix to spatial dimensions
+                           type = "heatmap", colorscale = "Reds", zmin=0, zmax=1) %>% # configures visual limits and hue maps
+                   layout(title = "Epistemic/Aleatoric Anomaly Necessity", xaxis = list(title = "Simulation Tick")) # configures textual layouts
+      
+      # 2. rml topology network # constructs the meta-learning graph
+      edges <- if(nrow(self$rml_ledger) > 0) self$rml_ledger %>% select(source, target) else data.frame(source="hub", target=names(self$agents)[1]) # extracts or fabricates structural edge lists
+      g <- graph_from_data_frame(edges, directed = TRUE) # constructs a directed igraph mathematical object
+      layout <- layout_in_circle(g) # computes a uniform circular geometric mapping
+      p_network <- plot_ly(x = layout[,1], y = layout[,2], type = 'scatter', mode = 'markers+text', text = V(g)$name, # maps the vertices to a cartesian plane
+                           marker = list(size = 25, color = '#17becf'), textposition = "bottom center") %>% # configures the aesthetic properties of vertices
+                   layout(title = "Relational Machine Learning (Knowledge Transfers)", xaxis = list(showgrid = F, zeroline = F, showticklabels = F), yaxis = list(showgrid = F, zeroline = F, showticklabels = F)) # suppresses cartesian axes
+      
+      # 3. autotelic phase trajectory # constructs the 3d state-space projection
+      p_3d <- plot_ly(df, x = ~mastery, y = ~curiosity, z = ~necessity, color = ~agent, type = "scatter3d", mode = "lines+markers", marker = list(size = 3)) %>% # maps state variables to xyz coordinates
+              layout(title = "Autotelic Phase Space Mapping", scene = list(xaxis = list(title = "Mastery"), yaxis = list(title = "Curiosity"), zaxis = list(title = "Fuzzy Necessity"))) # configures the 3d scene labels
+      
+      # 4. ami symbolic explorer # constructs the detailed temporal dual-axis chart
+      p_detail <- plot_ly(data = df %>% filter(agent == names(self$agents)[1])) %>% # initializes the chart filtered to the primary agent
+                  add_lines(x = ~tick, y = ~signal, name = "Raw Telemetry", line = list(color = '#1f77b4')) %>% # renders the unadulterated incoming signal
+                  add_lines(x = ~tick, y = ~prediction, name = "AMI Equation", line = list(color = '#ff7f0e', dash = 'dash')) %>% # renders the discovered symbolic governing function
+                  add_lines(x = ~tick, y = ~possibility, name = "Fuzzy Possibility", yaxis = "y2", line = list(color = '#2ca02c')) %>% # renders the epistemological bounding curve
+                  layout(title = paste("AMI Explorer:", names(self$agents)[1]), yaxis2 = list(overlaying = "y", side = "right", range = c(0, 1))) # configures the dual y-axis scaling
+      
+      # dashboard html assembly # executes the final dom concatenation
+      dashboard <- tagList( # invokes htmltools tag listing
+        tags$h2("ROD: Advanced Autotelic Anomaly Engine", style="text-align: center; font-family: sans-serif;"), # injects the primary header
+        div(style="display: flex; flex-wrap: wrap; justify-content: center;", # opens the primary flex container
+            div(style="width: 45%; padding: 10px;", p_heatmap), div(style="width: 45%; padding: 10px;", p_network), # injects the upper visual modules
+            div(style="width: 45%; padding: 10px;", p_3d), div(style="width: 45%; padding: 10px;", p_detail) # injects the lower visual modules
+        ) # closes the primary flex container
+      ) # closes the tag list
+      return(browsable(dashboard)) # yields the finalized html structure to the viewport or browser
+    } # closes render method
+  ) # closes public method list
+) # closes orchestrator class definition
+
+# --------------------------------------------------------- # structural demarcation
+# execution and initiation parameters # operational initialization
+# --------------------------------------------------------- # structural demarcation
+hub <- RODOrchestrator$new() # instantiates the primary central nervous system
+hub$spawn_agent("FIN-ALPHA", "Finance") # instantiates the algorithmic trading monitor
+hub$spawn_agent("AERO-SAT", "Aerospace") # instantiates the orbital satellite monitor
+hub$spawn_agent("MED-ICU", "Healthcare") # instantiates the biological rhythm monitor
+
+# standard demonstration execution # comments indicating default behavior
+hub$monitor_ecosystem(120) # executes the simulated temporal progression
+dashboard <- hub$render_dashboard() # compiles the post-execution visual analytics
+dashboard # prints the visualization array to the localized viewer
+
+# production api execution (commented by default) # instructions for production deployment
+# hub$start_rest_api(port = 8000) # initializes the asynchronous network listener for edge ingestion
