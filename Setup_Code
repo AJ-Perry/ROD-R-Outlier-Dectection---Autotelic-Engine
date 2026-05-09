@@ -1,0 +1,31 @@
+# rod: r outlier detection - dependency setup script
+# executes the autonomous resolution of all required computational libraries
+
+cat("[rod-setup] initializing rigorous dependency resolution sequence...\n")
+
+# specifies the strictly required comprehensive r archive network (cran) packages
+required_packages <- c(
+  "R6",            # provides object-oriented reference semantics for engine structure
+  "plumber",       # provides asynchronous http server capabilities for the live api
+  "dplyr",         # provides high-performance dataframe manipulation logic
+  "tidyr",         # provides topological reshaping mechanics for analytical matrices
+  "plotly",        # provides multi-dimensional, javascript-enabled visual rendering
+  "htmltools",     # provides dynamic document object model (dom) assembly
+  "igraph",        # provides relational topology mathematics for rml visualization
+  "futile.logger", # provides formal execution auditing and console logging
+  "reticulate"     # provides inter-process communication bridging to python (optional extensions)
+)
+
+# identifies packages currently absent from the localized computational environment
+missing_packages <- required_packages[!(required_packages %in% installed.packages()[,"Package"])]
+
+if (length(missing_packages) > 0) {
+  cat(sprintf("[rod-setup] identified %d missing dependencies. initiating retrieval...\n", length(missing_packages)))
+  # executes the retrieval and compilation sequence from standard cran mirrors
+  install.packages(missing_packages, repos = "https://cloud.r-project.org/", dependencies = TRUE)
+  cat("[rod-setup] dependency resolution successfully executed.\n")
+} else {
+  cat("[rod-setup] environmental analysis complete. all computational prerequisites are present.\n")
+}
+
+cat("\n[rod-setup] system is mathematically primed for autotelic execution.\n")
